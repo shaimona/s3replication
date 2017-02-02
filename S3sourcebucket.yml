@@ -60,6 +60,7 @@ Resources:
           -
             Action:
               - 's3:PutObject'
+            Sid: DenyIncorrectEncryptionHeader
             Effect: Deny
             Principal: "*"
             Resource:
@@ -71,7 +72,7 @@ Resources:
                   - "/*"
             Condition:
               StringNotEquals:
-                s3:x-amz-server-side-encryption: 256
+                s3:x-amz-server-side-encryption: AES256
           -
             Action:
               - 's3:PutObject'

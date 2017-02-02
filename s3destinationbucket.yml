@@ -48,4 +48,36 @@ Resources:
                   - "arn:aws:s3:::"
                   - !Ref destBucketName
                   - "/*"
+          -
+            Action:
+              - 's3:PutObject'
+            Sid: DenyIncorrectEncryptionHeader
+            Effect: Deny
+            Principal: "*"
+            Resource:
+              Fn::Join:
+                - ""
+                -
+                  - "arn:aws:s3:::"
+                  - !Ref destBucketName
+                  - "/*"
+            Condition:
+              StringNotEquals:
+                s3:x-amz-server-side-encryption: AES256
+          -
+            Action:
+              - 's3:PutObject'
+            Sid: DenyUnEncryptedObjectUploads
+            Effect: Deny
+            Principal: "*"
+            Resource:
+              Fn::Join:
+                - ""
+                -
+                  - "arn:aws:s3:::"
+                  - !Ref destBucketName
+                  - "/*"
+            Condition:
+              'Null':
+                s3:x-amz-server-side-encryption: true
     DependsOn: s3bucket
