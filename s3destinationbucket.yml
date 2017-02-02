@@ -5,7 +5,7 @@ Description: 'CloudFormation Template for creating destination S3 replication bu
  must run on a region other than the region where source bucket is located'
 
 Parameters:
-  destBucketName:
+  bucketName:
     Description: Name of the destination S3 bucket
     Type: String
   accountID:
@@ -17,17 +17,17 @@ Resources:
   s3bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Ref destBucketName
+      BucketName: !Ref bucketName
       Tags:
         - Key: Name
-          Value: !Ref destBucketName
+          Value: !Ref bucketName
       VersioningConfiguration:
         Status: Enabled
   # Bucket policy for granting replication access from source account
   destReplPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref destBucketName
+      Bucket: !Ref bucketName
       PolicyDocument:
         Statement:
           - Action:
@@ -46,7 +46,7 @@ Resources:
                 - ""
                 -
                   - "arn:aws:s3:::"
-                  - !Ref destBucketName
+                  - !Ref bucketName
                   - "/*"
           -
             Action:
@@ -59,7 +59,7 @@ Resources:
                 - ""
                 -
                   - "arn:aws:s3:::"
-                  - !Ref destBucketName
+                  - !Ref bucketName
                   - "/*"
             Condition:
               StringNotEquals:
@@ -75,7 +75,7 @@ Resources:
                 - ""
                 -
                   - "arn:aws:s3:::"
-                  - !Ref destBucketName
+                  - !Ref bucketName
                   - "/*"
             Condition:
               'Null':

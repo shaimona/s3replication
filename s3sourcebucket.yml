@@ -10,7 +10,7 @@ Parameters:
   logBucketName:
     Description: Name of the S3 bucket where access logs will send to
     Type: String
-  destinationBucket:
+  destinationBucketName:
     Description: Name of the replication bucket
     Type: String
 
@@ -32,11 +32,11 @@ Resources:
                   - ""
                   -
                     - "arn:aws:s3:::"
-                    - !Ref destinationBucket
+                    - !Ref destinationBucketName
             Prefix: ''
             Status: Enabled
       LoggingConfiguration:
-        DestinationBucketName: !Ref logBucketName
+        DestinationBucketNameName: !Ref logBucketName
       VersioningConfiguration:
         Status: Enabled
 
@@ -136,7 +136,7 @@ Resources:
                 - ""
                 -
                   - "arn:aws:s3:::"
-                  - !Ref destinationBucket
+                  - !Ref destinationBucketName
                   - "/*"
       PolicyName: ReplicationBackupPolicy
       Roles: [!Ref 's3ReplicationRole']
