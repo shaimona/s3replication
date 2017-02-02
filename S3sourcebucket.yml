@@ -1,0 +1,141 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: 'CloudFormation Template for creating S3 buckets and access policies.
+Please run s3destination cloudformation before running this template'
+
+Parameters:
+  bucketName:
+    Description: Name of the source S3 bucket
+    Type: String
+  logBucketName:
+    Description: Name of the S3 bucket where access logs will send to
+    Type: String
+  destinationBucket:
+    Description: Name of the replication bucket
+    Type: String
+
+Resources:
+  # Creating source S3 bucket and replication configuration
+  s3bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref bucketName
+      Tags:
+        - Key: Name
+          Value: !Ref bucketName
+      ReplicationConfiguration:
+        Role: !GetAtt [s3ReplicationRole, Arn]
+        Rules:
+          - Destination:
+              Bucket:
+                Fn::Join:
+                  - ""
+                  -
+                    - "arn:aws:s3:::"
+                    - !Ref destinationBucket
+            Prefix: ''
+            Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref logBucketName
+      VersioningConfiguration:
+        Status: Enabled
+
+  # Creating S3 log bucket
+  logBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref logBucketName
+      AccessControl: LogDeliveryWrite
+      Tags:
+        - Key: Name
+          Value: !Ref logBucketName
+
+  # Creating encryption policy for the source S3 bucket
+  encryptionPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref bucketName
+      PolicyDocument:
+        Statement:
+          -
+            Action:
+              - 's3:PutObject'
+            Effect: Deny
+            Principal: "*"
+            Resource:
+              Fn::Join:
+                - ""
+                -
+                  - "arn:aws:s3:::"
+                  - !Ref s3bucket
+                  - "/*"
+            Condition:
+              StringNotEquals:
+                s3:x-amz-server-side-encryption: 256
+          -
+            Action:
+              - 's3:PutObject'
+            Sid: DenyUnEncryptedObjectUploads
+            Effect: Deny
+            Principal: "*"
+            Resource:
+              Fn::Join:
+                - ""
+                -
+                  - "arn:aws:s3:::"
+                  - !Ref s3bucket
+                  - "/*"
+            Condition:
+              'Null':
+                s3:x-amz-server-side-encryption: true
+
+  # Creating IAM role for replication
+  s3ReplicationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: ['sts:AssumeRole']
+          Effect: Allow
+          Principal:
+            Service: [s3.amazonaws.com]
+
+  # Creating IAM policy for replication and attaching it to the above role
+  replicationBackupPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+            - 's3:GetObjectVersion'
+            - 's3:GetObjectVersionAcl'
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                -
+                  - "arn:aws:s3:::"
+                  - !Ref s3bucket
+                  - "/*"
+          - Action:
+            - 's3:ListBucket'
+            - 's3:GetReplicationConfiguration'
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                -
+                  - "arn:aws:s3:::"
+                  - !Ref s3bucket
+          - Action:
+            - 's3:ReplicateObject'
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                -
+                  - "arn:aws:s3:::"
+                  - !Ref destinationBucket
+                  - "/*"
+      PolicyName: ReplicationBackupPolicy
+      Roles: [!Ref 's3ReplicationRole']

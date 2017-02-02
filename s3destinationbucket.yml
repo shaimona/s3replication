@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: 'CloudFormation Template for creating destination S3 replication bucket.
+ Run this cloudformation template before creating source S3 bucket. This cloudformation
+ must run on a region other than the region where source bucket is located'
+
+Parameters:
+  destBucketName:
+    Description: Name of the destination S3 bucket
+    Type: String
+  accountID:
+    Description: Account number of the source S3 bucket
+    Type: String
+
+Resources:
+  # Creating destination S3 bucket
+  s3bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref destBucketName
+      Tags:
+        - Key: Name
+          Value: !Ref destBucketName
+      VersioningConfiguration:
+        Status: Enabled
+  # Bucket policy for granting replication access from source account
+  destReplPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref destBucketName
+      PolicyDocument:
+        Statement:
+          - Action:
+              - 's3:ReplicateObject'
+            Effect: Allow
+            Principal:
+              AWS:
+                Fn::Join:
+                  - ""
+                  -
+                    - "arn:aws:iam::"
+                    - !Ref accountID
+                    - ":root"
+            Resource:
+              Fn::Join:
+                - ""
+                -
+                  - "arn:aws:s3:::"
+                  - !Ref destBucketName
+                  - "/*"
+    DependsOn: s3bucket
