@@ -3,7 +3,7 @@
 export DestBucketName=myfavdestinationbucket
 export DestRegion=us-west-2
 export DestAccountId=109558624488
-export DestStackName=S3BucketReplDestination-`date +%H%M%S%m%d%y`
+export DestStackName=S3BucketReplDestination
 export DestProfile=prod
 
 export SourceBucketName=myfavsourcebucket
@@ -11,6 +11,7 @@ export SourceLogBucketName=myfavlogbucket
 export SourceRegion=us-east-1
 export SourceProfile=dev
 
+# Import shared functions
 source common.sh
 
 set +e
@@ -23,7 +24,7 @@ ParameterKey=accountID,ParameterValue=${DestAccountId} \
 --profile ${DestProfile}
 
 # Snatch the return code from the command above
-RC=$?	
+RC=$?
 
 # Check the status, spin until it completes
 set -e
@@ -36,7 +37,13 @@ aws cloudformation create-stack --stack-name S3BucketReplSource \
 --parameters ParameterKey=bucketName,ParameterValue=${SourceBucketName} \
 ParameterKey=logBucketName,ParameterValue=${SourceLogBucketName} \
 ParameterKey=destinationBucketName,ParameterValue=${DestBucketName} \
---capabilities CAPABILITY_IAM \
+--capabilities CAPABILITY_NAMED_IAM \
 --region ${SourceRegion} \
 --profile ${SourceProfile}
 
+# Snatch the return code from the command above
+RC=$?
+
+# Check the status, spin until it completes
+set -e
+checkCFStatus ${SourceStackName} ${SourceProfile}
