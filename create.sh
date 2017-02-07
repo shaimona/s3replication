@@ -1,15 +1,7 @@
 #!/bin/bash
 
-export DestBucketName=myfavdestinationbucket
-export DestRegion=us-west-2
-export DestAccountId=109558624488
-export DestStackName=S3BucketReplDestination
-export DestProfile=prod
-
-export SourceBucketName=myfavsourcebucket
-export SourceLogBucketName=myfavlogbucket
-export SourceRegion=us-east-1
-export SourceProfile=dev
+# Import configuration
+source env.sh
 
 # Import shared functions
 source common.sh
@@ -32,7 +24,7 @@ checkCFStatus ${DestStackName} ${DestProfile}
 
 set +e
 echo "Creating Source bucket"
-aws cloudformation create-stack --stack-name S3BucketReplSource \
+aws cloudformation create-stack --stack-name ${SourceStackName} \
 --template-body file://s3sourcebucket.yml \
 --parameters ParameterKey=bucketName,ParameterValue=${SourceBucketName} \
 ParameterKey=logBucketName,ParameterValue=${SourceLogBucketName} \

@@ -5,20 +5,19 @@ This document serves to outline the steps necessary to implement bucket replicat
 __Features delivered__
 - Encryption-at-rest
 - Object replication
-- ACL replication
 - Server Access Logging for Source bucket
 
 __Features remaining__
-- "Installation" Bash script
 - MFA-delete
-- Proof-of-concept Python script showing how to set required ACL entry listed in "Caveats" section
 
 __Caveats__
 - Uploaded objects must have an explicit ACL entry created which grants "Open/Download" and "View Permissions" to the Destination Account's "root" user
 
-__Resources delivered__
-- CloudFormation templates (one per bucket)
+### Steps to implement
 
-### Steps to implement (WIP)
-1. Identify your "source" and "destination" AWS Account IDs.
-2. ..to be continued..
+Note! It is recommended that you configure two [Named Profiles](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-multiple-profiles) to easily switch between accounts.
+
+1. Copy `env.sh.SAMPLE` to `env.sh`
+2. Edit `env.sh` to reflect your environment (profiles, bucket names, account IDs, etc)
+3. Run `./create.sh` to create the required buckets and policies
+4. Upload an object into the Source bucket. It can take up to 15 minutes for initial replication.
