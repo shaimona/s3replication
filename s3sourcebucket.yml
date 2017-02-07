@@ -36,7 +36,7 @@ Resources:
             Prefix: ''
             Status: Enabled
       LoggingConfiguration:
-        DestinationBucketNameName: !Ref logBucketName
+        DestinationBucketName: !Ref logBucketName
       VersioningConfiguration:
         Status: Enabled
 
@@ -94,6 +94,7 @@ Resources:
   s3ReplicationRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: s3ReplicationRole
       AssumeRolePolicyDocument:
         Statement:
         - Action: ['sts:AssumeRole']
@@ -140,3 +141,11 @@ Resources:
                   - "/*"
       PolicyName: ReplicationBackupPolicy
       Roles: [!Ref 's3ReplicationRole']
+
+Outputs:
+  s3ReplicationRoleArn:
+    Value: !GetAtt [s3ReplicationRole, Arn]
+  sourceBucketName:
+    Value: !Ref bucketName
+  sourceLogBucketName:
+    Value: !Ref logBucketName
