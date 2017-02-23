@@ -3,11 +3,7 @@ checkCFStatus(){
 	local statusTimeout=1000
 	local statusStart=0
 	local stackname=$1
-	local profile=""	# optional variable
-
-	if [[ ! -z "$2" ]]; then
-		profile="--profile $2"
-	fi
+    local region=$2
 
     ## Check the return code of a CloudFormation stack and identify whether an actual status check is needed.
     if [ "$RC" -eq 0 ]; then
@@ -22,7 +18,7 @@ checkCFStatus(){
 
     ## Check the status of a CloudFormation stack to ensure a failure of a stack create/update will display the failure reason and exit the pipeline creation.
     while [ ${statusStart} -le ${statusTimeout} ]; do
-        CFStatus=$(aws ${profile} cloudformation describe-stacks --stack-name ${stackname} | grep "\"StackStatus\":")
+        CFStatus=$(aws cloudformation describe-stacks --stack-name ${stackname} --region ${region} | grep "\"StackStatus\":")
         if [[ "${CFStatus}" == *"CREATE_COMPLETE"* ]];then
                 echo "[INFO] CloudFormation Completed Successfully."
                 return
@@ -31,7 +27,7 @@ checkCFStatus(){
                 return
         elif [[ "${CFStatus}" == *"ROLLBACK_COMPLETE"* ]];then
                 echo "[ERRO] An error occurred when running the CloudFormation Stack. Displaying the CloudFormation Stack Events."
-                aws ${profile} cloudformation describe-stack-events --stack-name ${stackname} --query 'StackEvents[?ResourceStatus==`CREATE_FAILED`].ResourceStatusReason' --output text
+                aws cloudformation describe-stack-events --stack-name ${stackname} --region ${region} --query 'StackEvents[?ResourceStatus==`CREATE_FAILED`].ResourceStatusReason' --output text
                 echo "[ERRO] CloudFormation Failed, exiting."
                 exit 1
         fi

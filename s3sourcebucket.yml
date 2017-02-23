@@ -33,6 +33,7 @@ Resources:
                   -
                     - "arn:aws:s3:::"
                     - !Ref destinationBucketName
+              StorageClass: STANDARD_IA
             Prefix: ''
             Status: Enabled
       LoggingConfiguration:
@@ -95,6 +96,13 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName: s3ReplicationRole
+      RoleName:
+        Fn::Join:
+          - ""
+          -
+            - !Ref bucketName
+            - "Role"
+
       AssumeRolePolicyDocument:
         Statement:
         - Action: ['sts:AssumeRole']
